@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giovanni Verga - La Lupa | Laboratorio Interattivo Multi-Nodo</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-red: #8b0000;
+            --accent-gold: #d97706;
+            --bg-warm: #fdfbf7;
+            --card-bg: #ffffff;
+            --text-dark: #2c3e50;
+            --verga-green: #2d5a27;
+        }
+
+        body {
+            background-color: var(--bg-warm);
+            color: var(--text-dark);
+            font-family: 'Merriweather', serif;
+            line-height: 1.8;
+        }
+
+        h1, h2, h3, h4, h5, .navbar-brand, .nav-tabs, .btn-node {
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .navbar {
+            background-color: var(--primary-red);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .hero-header {
+            background: linear-gradient(135deg, #1e0000 0%, #4a0000 100%);
+            color: white;
+            padding: 60px 0;
+            text-align: center;
+            border-bottom: 5px solid var(--accent-gold);
+        }
+
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+
+        .section-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            padding: 35px;
+            margin-bottom: 45px;
+            border-left: 6px solid var(--primary-red);
+        }
+
+        .text-box {
+            background-color: #faf6f0;
+            border: 1px solid #e2d8ce;
+            border-radius: 10px;
+            padding: 25px;
+            font-size: 1.05rem;
+            text-align: justify;
+            max-height: 550px;
+            overflow-y: auto;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.04);
+        }
+
+        .text-box p {
+            margin-bottom: 1.2rem;
+            text-indent: 1.2rem;
+        }
+
+        /* Flashcards Flip */
+        .flashcard-container {
+            perspective: 1000px;
+            margin-bottom: 20px;
+        }
+        .flashcard {
+            width: 100%;
+            height: 190px;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+            position: relative;
+        }
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .flashcard-front {
+            background-color: #ffffff;
+            border: 2px solid var(--primary-red);
+            color: var(--primary-red);
+            font-weight: bold;
+            font-size: 1.15rem;
+        }
+        .flashcard-back {
+            background-color: var(--primary-red);
+            color: #ffffff;
+            transform: rotateY(180deg);
+            font-size: 0.95rem;
+        }
+
+        /* Multi-Node System */
+        .node-container {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 35px;
+            border: 2px solid var(--accent-gold);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+
+        .node-badge {
+            background-color: var(--accent-gold);
+            color: #000;
+            font-weight: bold;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        .btn-node {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(217, 119, 6, 0.5);
+            color: #f1f5f9;
+            padding: 12px 18px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            text-align: left;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .btn-node:hover {
+            background: var(--accent-gold);
+            color: #000;
+            font-weight: bold;
+            transform: translateX(5px);
+        }
+
+        .node-history-badge {
+            background: #334155;
+            color: #94a3b8;
+            font-size: 0.8rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-4" href="#"><i class="fas fa-book-open me-2"></i>Verga: La Lupa</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto font-sans">
+                    <li class="nav-item"><a class="nav-link" href="#sezione-testi">Testi & Confronto</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#flashcards-section">Flashcards & Concetti</a></li>
+                    <li class="nav-item"><a class="nav-link text-warning fw-bold" href="#nodo-interattivo"><i class="fas fa-sitemap me-1"></i>Mappa dei Destini (Multi-Nodo)</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header Hero -->
+    <header class="hero-header">
+        <div class="container">
+            <h1 class="hero-title">La Lupa</h1>
+            <p class="lead fs-4 font-sans">Giovanni Verga – <em>Vita dei Campi (1880)</em></p>
+            <p class="fst-italic text-warning opacity-90 fs-5">"Ella non si arretrò di un sol passo, non chinò gli occhi, seguitō ad andargli incontro..."</p>
+        </div>
+    </header>
+
+    <div class="container my-5">
+
+        <!-- 1. SEZIONE TESTI -->
+        <section id="sezione-testi" class="section-card">
+            <h2 class="text-danger mb-4"><i class="fas fa-file-alt me-2"></i>Lettura della Novella: Integrale vs Sintesi</h2>
+            
+            <ul class="nav nav-tabs mb-4" id="textTabs" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active fs-5" id="integrale-tab" data-bs-toggle="tab" data-bs-target="#integrale" type="button">
+                        <i class="fas fa-book-open me-2"></i>Testo INTEGRALE Originale (1880)
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link fs-5" id="antologia-tab" data-bs-toggle="tab" data-bs-target="#antologia" type="button">
+                        <i class="fas fa-compress-alt me-2"></i>Testo SINTETIZZATO (Per Punti)
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content">
+                <!-- TESTO INTEGRALE -->
+                <div class="tab-pane fade show active" id="integrale">
+                    <div class="alert alert-success border-0 shadow-sm mb-3">
+                        <i class="fas fa-check-circle me-2"></i><strong>Testo Integrale Originale:</strong> Trascrizione fedele e completa della novella verghiana (1880).
+                    </div>
+                    <div class="text-box">
+                        <p>Era alta, magra, aveva soltanto un seno fermo e vigoroso da bruna - e pure non era più giovane - era pallida come se avesse sempre addosso la malaria, e su quel pallore due occhi grandi così, e delle labbra fresche e rosse, che vi mangiavano.</p><p>Al villaggio la chiamavano la Lupa perché non era sazia giammai - di nulla. Le donne si facevano la croce quando la vedevano passare, sola come una cagnaccia, con quell'andare randagio e sospettoso della lupa affamata; ella si spolpava i loro figliuoli e i loro mariti in un batter d'occhio, con le sue labbra rosse, e se li tirava dietro alla gonnella solamente a guardarli con quegli occhi da satanasso, fossero stati davanti all'altare di Santa Agrippina. Per fortuna la Lupa non veniva mai in chiesa, né a Pasqua, né a Natale, né per ascoltar messa, né per confessarsi. - Padre Angiolino di Santa Maria di Gesù, un vero servo di Dio, aveva persa l'anima per lei.</p><p>Maricchia, poveretta, buona e brava ragazza, piangeva di nascosto, perché era figlia della Lupa, e nessuno l'avrebbe tolta in moglie, sebbene ci avesse la sua bella roba nel cassettone, e la sua buona terra al sole, come ogni altra ragazza del villaggio.</p><p>Una volta la Lupa si innamorò di un bel giovane che era tornato da soldato, e mieteva il fieno con lei nelle chiuse del notaro; ma proprio quello che si dice innamorarsi, sentirsene ardere le carni sotto al fustagno del corpetto, e provare, fissandolo negli occhi, la sete che si ha nelle ore calde di giugno, in fondo alla pianura. Ma lui seguitava a mietere tranquillamente, col naso sui manipoli, e le diceva: - O che avete, gnà Pina? - Nei campi immensi, dove scoppiettava soltanto il volo dei grilli, quando il sole batteva a piombo, la Lupa, affastellava manipoli su manipoli, e covoni su covoni, senza stancarsi mai, senza rizzarsi un momento sulla vita, senza accostare le labbra al fiasco, pur di stare sempre alle calcagna di Nanni, che mieteva e mieteva, e le domandava di quando in quando: - Che volete, gnà Pina? -</p><p>Una sera ella glielo disse, mentre gli uomini sonnecchiavano nell'aia, stanchi dalla lunga giornata, ed i cani uggiolavano per la vasta campagna nera: - Te voglio! Te che sei bello come il sole, e dolce come il miele. Voglio te!
+- Ed io invece voglio vostra figlia, che è zitella - rispose Nanni ridendo.</p><p>La Lupa si cacciò le mani nei capelli, grattandosi le tempie senza dir parola, e se ne andò; né più comparve nell'aia. Ma in ottobre rivide Nanni, al tempo che cavavano l'olio, perché egli lavorava accanto alla sua casa, e lo scricchiolio del torchio non la faceva dormire tutta notte.</p><p>- Prendi il sacco delle olive, - disse alla figliuola, - e vieni -.
+Nanni spingeva con la pala le olive sotto la macina, e gridava - Ohi! - alla mula perché non si arrestasse. - La vuoi mia figlia Maricchia? - gli domandò la gnà Pina. - Cosa gli date a vostra figlia Maricchia? - rispose Nanni. - Essa ha la roba di suo padre, e dippiù io le do la mia casa; a me mi basterà che mi lasciate un cantuccio nella cucina, per stendervi un po' di pagliericcio. - Se è così se ne può parlare a Natale - disse Nanni. Nanni era tutto unto e sudicio dell'olio e delle olive messe a fermentare, e Maricchia non lo voleva a nessun patto; ma sua madre l'afferrò pe' capelli, davanti al focolare, e le disse co' denti stretti: - Se non lo pigli, ti ammazzo! -</p><p>La Lupa era quasi malata, e la gente andava dicendo che il diavolo quando invecchia si fa eremita. Non andava più di qua e di là; non si metteva più sull'uscio, con quegli occhi da spiritata. Suo genero, quando ella glieli piantava in faccia, quegli occhi, si metteva a ridere, e cavava fuori l'abitino della Madonna per segnarsi. Maricchia stava in casa ad allattare i figliuoli, e sua madre andava nei campi, a lavorare cogli uomini, proprio come un uomo, a sarchiare, a zappare, a governare le bestie, a potare le viti, fosse stato greco e levante di gennaio, oppure scirocco di agosto, allorquando i muli lasciavano cader la testa penzoloni, e gli uomini dormivano bocconi a ridosso del muro a tramontana. In quell'ora fra vespero e nona, in cui non ne va in volta femmina buona, la gnà Pina era la sola anima viva che si vedesse errare per la campagna, sui sassi infuocati delle viottole, fra le stoppie riarse dei campi immensi, che si perdevano nell'afa, lontan lontano, verso l'Etna nebbioso, dove il cielo si aggravava sull'orizzonte.</p><p>- Svegliati! - disse la Lupa a Nanni che dormiva nel fosso, accanto alla siepe polverosa, col capo fra le braccia. - Svegliati, ché ti ho portato il vino per rinfrescarti la gola -.
+Nanni spalancò gli occhi imbambolati, tra veglia e sonno, trovandosela dinanzi ritta, pallida, col petto prepotente, e gli occhi neri come il carbone, e stese brancolando le mani.
+- No! non ne va in volta femmina buona nell'ora fra vespero e nona! - singhiozzava Nanni, ricacciando la faccia contro l'erba secca del fossato, in fondo in fondo, colle unghie nei capelli. - Andatevene! andatevene! non ci venite più nell'aia! -</p><p>Ella se ne andava infatti, la Lupa, riannodando le trecce superbe, guardando fisso dinanzi ai suoi passi nelle stoppie calde, cogli occhi neri come il carbone.</p><p>Ma nell'aia ci tornò delle altre volte, e Nanni non le disse nulla. Quando tardava a venire anzi, nell'ora fra vespero e nona, egli andava ad aspettarla in cima alla viottola bianca e deserta, col sudore sulla fronte - e dopo si cacciava le mani nei capelli, e le ripeteva ogni volta: - Andatevene! andatevene! Non ci tornate più nell'aia! -</p><p>Maricchia piangeva notte e giorno, e alla madre le piantava in faccia gli occhi ardenti di lagrime e di gelosia, come una lupacchiotta anch'essa, allorché la vedeva tornare da' campi pallida e muta ogni volta. - Scellerata! - le diceva. - Mamma scellerata!
+- Taci!
+- Ladra! ladra!
+- Taci!
+- Andrò dal brigadiere, andrò!
+- Vacci!
+E ci andò davvero, coi figli in collo, senza temere di nulla, e senza versare una lagrima, come una pazza, perché adesso l'amava anche lei quel marito che le avevano dato per forza, unto e sudicio delle olive messe a fermentare.</p><p>Il brigadiere fece chiamare Nanni; lo minacciò sin della galera e della forca. Nanni si diede a singhiozzare ed a strapparsi i capelli; non negò nulla, non tentò di scolparsi. - È la tentazione! - diceva; - è la tentazione dell'inferno! - Si buttò ai piedi del brigadiere supplicandolo di mandarlo in galera.
+- Per carità, signor brigadiere, levatemi da questo inferno! Fatemi ammazzare, mandatemi in prigione! non me la lasciate veder più, mai! mai!
+- No! - rispose invece la Lupa al brigadiere - Io mi son riserbato un cantuccio della cucina per dormirvi, quando gli ho data la mia casa in dote. La casa è mia; non voglio andarmene.</p><p>Poco dopo, Nanni s'ebbe nel petto un calcio dal mulo, e fu per morire; ma il parroco ricusò di portargli il Signore se la Lupa non usciva di casa. La Lupa se ne andò, e suo genero allora si poté preparare ad andarsene anche lui da buon cristiano; si confessò e comunicò con tali segni di pentimento e di contrizione che tutti i vicini e i curiosi piangevano davanti al letto del moribondo. E meglio sarebbe stato per lui che fosse morto in quel giorno, prima che il diavolo tornasse a tentarlo e a ficcarglisi nell'anima e nel corpo quando fu guarito. - Lasciatemi stare! - diceva alla Lupa. - Per carità, lasciatemi in pace! Io ho visto la morte cogli occhi! La povera Maricchia non fa che disperarsi. Ora tutto il paese lo sa! Quando non vi vedo è meglio per voi e per me... -</p><p>Ed avrebbe voluto strapparsi gli occhi per non vedere quelli della Lupa, che quando gli si ficcavano ne' suoi gli facevano perdere l'anima ed il corpo. Non sapeva più che fare per svincolarsi dall'incantesimo. Pagò delle messe alle anime del Purgatorio, e andò a chiedere aiuto al parroco e al brigadiere. A Pasqua andò a confessarsi, e fece pubblicamente sei palmi di lingua a strasciconi sui ciottoli del sacrato innanzi alla chiesa, in penitenza - e poi, come la Lupa tornava a tentarlo:
+- Sentite! - le disse, - non ci venite più nell'aia, perché se tornate a cercarmi, com'è vero Iddio, vi ammazzo!
+- Ammazzami, - rispose la Lupa, - ché non me ne importa; ma senza di te non voglio starci -.</p><p>Ei come la scorse da lontano, in mezzo a' seminati verdi, lasciò di zappare la vigna, e andò a staccare la scure dall'olmo. La Lupa lo vide venire, pallido e stralunato, colla scure che luccicava al sole, e non si arretrò di un sol passo, non chinò gli occhi, seguitō ad andargli incontro, con le mani piene di manipoli di papaveri rossi, e mangiandosi lo con gli occhi neri. - Ah! malanno all'anima vostra! - balbettō Nanni.</p>
+                    </div>
+                </div>
+
+                <!-- TESTO SINTETIZZATO -->
+                <div class="tab-pane fade" id="antologia">
+                    <div class="alert alert-warning border-0 shadow-sm mb-3">
+                        <i class="fas fa-cut me-2"></i><strong>Sintesi Didattica per Concetti:</strong> Punti snodo per l'analisi rapida e il ripasso.
+                    </div>
+                    <div class="text-box">
+                        <p><b>1. Ritratto demoniaco:</b> La Lupa è pallida, insaziabile, ha labbra fresche e rosse e occhi neri da satanasso. Il villaggio la teme ed emargina.</p><p><b>2. La passione per Nanni:</b> Nei campi di giugno, la Lupa dichiara il suo amore a Nanni. Egli la rifiuta dicendo di volere la figlia Maricchia per la dote.</p><p><b>3. Il patto della dote:</b> In ottobre la Lupa costringe Maricchia a sposare Nanni cedendo la propria casa e la dote, riservandosi solo un cantuccio in cucina.</p><p><b>4. La seduzione nell'ora calandrina:</b> La Lupa torna a cercare Nanni nei campi nell'ora più calda ('fra vespero e nona'). Nanni cede ma vive un lacerante tormento.</p><p><b>5. Il fallimento delle autorità:</b> Maricchia denuncia la madre al brigadiere e Nanni implora la prigione, ma la Lupa si rifiuta fermamente di lasciare la casa.</p><p><b>6. Il calcio del mulo e la penitenza:</b> Nanni rischia la morte, fa penitenza pubblica sul sagrato, ma una volta guarito ricade nel vortice dell'ossessione.</p><p><b>7. L'epilogo tragico:</b> Nanni la affronta con una scure nei campi. La Lupa gli va incontro senza paura con papaveri rossi e occhi neri.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. FLASHCARDS E CONCETTI CHIAVE -->
+        <section id="flashcards-section" class="section-card">
+            <h2 class="text-danger mb-4"><i class="fas fa-layer-group me-2"></i>Flashcards & Concetti Chiave Verghiani</h2>
+            <p class="text-muted mb-4">Clicca sulle carte per girarle e scoprire le definizioni e le chiavi di lettura teoriche dell'opera!</p>
+
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="flashcard-container">
+                        <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                            <div class="flashcard-front">Artificio della Regressione</div>
+                            <div class="flashcard-back">Il narratore regredisce e adotta la mentalità, la cultura e i pregiudizi del villaggio (es. la Lupa vista come 'satanasso').</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="flashcard-container">
+                        <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                            <div class="flashcard-front">Ora fra Vespero e Nona</div>
+                            <div class="flashcard-back">L'ora calandrina di massimo calore estivo in cui la natura si arresta e gli impulsi sensuali primordiali travolgono i personaggi.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="flashcard-container">
+                        <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                            <div class="flashcard-front">Papaveri Rossi e Scure</div>
+                            <div class="flashcard-back">Simbolismo cromatico finale: il rosso dei papaveri simboleggia la passione e il sangue, la scure il destino tragico ineluttabile.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="flashcard-container">
+                        <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                            <div class="flashcard-front">Eclissi dell'Autore / Impersonalità</div>
+                            <div class="flashcard-back">L'autore scompare dalla narrazione: non giudica né commenta, lasciando che l'opera sembri essersi fatta da sé.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="flashcard-container">
+                        <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                            <div class="flashcard-front">La Roba e la Dote</div>
+                            <div class="flashcard-back">La logica economica del mondo rurale: Nanni accetta il matrimonio con Maricchia solo in cambio della dote e della casa usate come merce dalla Lupa.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="flashcard-container">
+                        <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                            <div class="flashcard-front">I Vinti Verghiani</div>
+                            <div class="flashcard-back">Tutti i personaggi (Lupa, Nanni, Maricchia) sono sopraffatti dagli istinti primordiali e dalle impietose dinamiche sociali.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. MAPPA MULTI-NODO INTERATTIVA -->
+        <section id="nodo-interattivo" class="node-container mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="node-badge" id="node-step-tag">Nodo 1 d'Inizio</span>
+                <button class="btn btn-sm btn-outline-light" onclick="restartNodes()"><i class="fas fa-redo me-1"></i>Ricomincia il Percorso</button>
+            </div>
+
+            <h3 id="node-title" class="text-warning mb-3">1. L'Incontro nei Campi e il Rifiuto di Nanni</h3>
+
+            <div id="node-history" class="mb-3"></div>
+
+            <div class="p-3 bg-dark bg-opacity-50 rounded border border-secondary mb-4 fs-6" id="node-body">
+                Durante la mietitura di giugno, la Lupa dichiara direttamente il suo amore a Nanni. Nanni la rifiuta con una risata, affermando di volere invece sua figlia Maricchia che possiede la dote.
+            </div>
+
+            <!-- Quiz / Spunto di dibattito -->
+            <div id="node-quiz-container" class="bg-black bg-opacity-30 p-3 rounded mb-4 border-start border-3 border-info">
+                <h6 class="text-info mb-2"><i class="fas fa-brain me-2"></i>Spunto di Analisi e Dibattito in Classe:</h6>
+                <p id="node-quiz-text" class="small mb-0">Perché Nanni rifiuta la Lupa e sceglie la figlia Maricchia?</p>
+            </div>
+
+            <!-- Scelte e Piste di navigazione -->
+            <h5 class="text-warning mb-3"><i class="fas fa-compass me-2"></i>Scegli quale pista o approfondimento esplorare:</h5>
+            <div id="node-choices">
+                <!-- Generato via JS -->
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white text-center py-4 mt-5 border-top border-warning">
+        <div class="container">
+            <p class="mb-1">Laboratorio Didattico Multimediale - Italiano (5ª ITE / Liceo)</p>
+            <small class="text-muted">Giovanni Verga - La Lupa | Piattaforma Multi-Nodo</small>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Script Mappa Multi-Nodo -->
+    <script>
+        const graphNodes = {
+            n1: {
+                step: "Nodo 1",
+                title: "1. L'Incontro nei Campi e il Primo Rifiuto di Nanni",
+                text: "Nel mese di giugno, la Lupa brucia di passione per il giovane Nanni. Quando gli dichiara 'Te voglio!', Nanni risponde ridendo che preferisce sua figlia Maricchia perché possiede la dote e la casa.",
+                quiz: "In questo primo snodo emerge il contrasto verista tra la forza irrazionale dell'istinto (Lupa) e la logica economica dell'interesse materiale (Nanni).",
+                choices: [
+                    { text: "Prosegui verso il Patto della Dote (Ottobre al Frantoio)", target: "n2" },
+                    { text: "Approfondisci: La mentalità del paese e la demonizzazione della Lupa", target: "n1_deep" }
+                ]
+            },
+            n1_deep: {
+                step: "Approfondimento Nodo 1",
+                title: "Focus Critico: Il Giudizio della Comunità",
+                text: "Le donne del paese si fanno la croce quando vedono passare la Lupa. Il narratore popolare regredisce adottando la mentalità del villaggio: la Lupa non è solo una donna passionale, ma viene demonizzata come presenza malefica che spolpa gli uomini.",
+                quiz: "Esercizio di dibattito: La Lupa è un personaggio consapevole della propria trasgressione o è vittima dei pregiudizi della comunità?",
+                choices: [
+                    { text: "Torna alla trama principale: vai al Patto della Dote (Frantoio)", target: "n2" },
+                    { text: "Esplora lo scenario alternativo: E se Nanni avesse accettato subito la Lupa?", target: "alt_1" }
+                ]
+            },
+            n2: {
+                step: "Nodo 2",
+                title: "2. Il Patto al Frantoio e il Matrimonio di Maricchia",
+                text: "In ottobre, la Lupa offre a Nanni la propria casa e la dote di Maricchia pur di vivere sotto lo stesso tetto (in un cantuccio in cucina). Maricchia piange e rifiuta, ma la madre la costringe con la forza ('Se non lo pigli, ti ammazzo!').",
+                quiz: "Analisi: La Lupa baratta la propria casa e la vita della figlia pur di garantirsi la vicinanza fisica con Nanni.",
+                choices: [
+                    { text: "Avanza verso l'Ora fra Vespero e Nona (La Seduzione nei Campi)", target: "n3" },
+                    { text: "Esplora la figura di Maricchia: Vittima della madre o 'Lupacchiotta'?", target: "n2_maricchia" }
+                ]
+            },
+            n2_maricchia: {
+                step: "Focus Personaggi",
+                title: "Focus: Il Personaggio di Maricchia",
+                text: "Maricchia inizialmente è sottomessa e piange di nascosto. Successivamente, spinta dall'amore per il marito e dalla gelosia, affronta la madre a viso aperto ('Scellerata! Ladra!') e si rivolge alle autorità.",
+                quiz: "Come evolve il ruolo di Maricchia nel corso della novella? Diventa anch'essa una 'lupacchiotta' mossa da passioni incontrollabili?",
+                choices: [
+                    { text: "Prosegui verso l'Ora fra Vespero e Nona", target: "n3" },
+                    { text: "Ritorna allo snodo del Patto della Dote", target: "n2" }
+                ]
+            },
+            n3: {
+                step: "Nodo 3",
+                title: "3. La Tentazione nell'Ora Calandrina (Vespero e Nona)",
+                text: "Nel caldo torrido dell'estate, la Lupa torna a cercare Nanni nei campi mentre dorme nel fosso. Nanni cede alla sensualità ma vive un profondo tormento interiore e la implora di andarsene ('No! non ne va in volta femmina buona...').",
+                quiz: "L'ora fra vespero e nona rappresenta la natura infuocata in cui gli istinti sensuali primitivi travolgono ogni morale.",
+                choices: [
+                    { text: "Vai al tentativo di intervento del Brigadiere e del Prete", target: "n4" },
+                    { text: "Analizza la reazione di Nanni: Il senso di colpa e il conflitto interiore", target: "n3_nanni" }
+                ]
+            },
+            n3_nanni: {
+                step: "Focus Psicologico",
+                title: "Focus: Il Dramma di Nanni tra Peccato e Lussuria",
+                text: "Nanni si sente vittima di un incantesimo diabolico. Aspetta la Lupa in cima alla viottola, ma subito dopo si strappa i capelli e si dispera, tentando di trovare salvezza nella religione e nella legge.",
+                quiz: "Nanni è un personaggio del tutto vittima della Lupa o è complice attivo dell'ossessione tragica?",
+                choices: [
+                    { text: "Prosegui verso il ruolo delle Istituzioni (Brigadiere e Parroco)", target: "n4" },
+                    { text: "Ritorna all'Ora Calandrina", target: "n3" }
+                ]
+            },
+            n4: {
+                step: "Nodo 4",
+                title: "4. Il Fallimento del Brigadiere, del Prete e della Penitenza",
+                text: "Maricchia denuncia la madre. Nanni implora il brigadiere di mandarlo in prigione per salvarsi. Più tardi, rischiando di morire per un calcio di mulo, Nanni si confessa e fa penitenza pubblica strisciando la lingua sul sagrato. Ma una volta guarito ricade nella tentazione.",
+                quiz: "Significato verista: Nessuna istituzione umana (Stato o Chiesa) ha il potere di frenare la legge deterministica degli istinti primordiali.",
+                choices: [
+                    { text: "Avanza verso l'Epilogo Tragico (La Scure e i Papaveri)", target: "n5" },
+                    { text: "Esplora lo Scenario Alternativo: E se la Lupa fosse stata arrestata?", target: "alt_2" }
+                ]
+            },
+            n5: {
+                step: "Nodo Finale",
+                title: "5. L'Epilogo Tragico: I Papaveri Rossi e la Scure",
+                text: "Esasperato e incapace di resistere, Nanni affronta la Lupa con la scure nei campi verdi. La Lupa non fugge, ma gli va incontro conscia del proprio destino, con le mani piene di papaveri rossi e divorandolo con gli occhi neri.",
+                quiz: "Verifica di sintesi: Il contrasto simbolico tra il rosso dei papaveri (passione/sangue) e il nero degli occhi (morte) suggella la conclusione ineluttabile della novella.",
+                choices: [
+                    { text: "Riesamina l'intera Mappa dei Destini dall'inizio", target: "n1" }
+                ]
+            },
+            alt_1: {
+                step: "Scenario Ipotetico",
+                title: "Scenario Ipotetico A: Nanni cede fin da subito alla Lupa",
+                text: "Se Nanni avesse accettato la Lupa fin dall'inizio, la vicenda non avrebbe coinvolto Maricchia. Tuttavia, nella Sicilia verghiana, l'interesse economico per la dote è il motore indispensabile di ogni dinamica sociale.",
+                quiz: "Riflessione: Sarebbe stato un racconto verista senza il tema centrale della dote e della 'roba'?",
+                choices: [
+                    { text: "Ritorna al Nodo 1 per riprendere la trama principale", target: "n1" }
+                ]
+            },
+            alt_2: {
+                step: "Scenario Ipotetico",
+                title: "Scenario Ipotetico B: L'intervento risolutivo delle leggi",
+                text: "Se il brigadiere avesse arrestato la Lupa, la storia si sarebbe conclusa con una soluzione morale. Verga rifiuta questo esito perché il suo Verismo mostra una realtà spietata escludendo consolazioni moralistiche.",
+                quiz: "Confronto col Naturalismo francese: Zola credeva nel progresso e nella funzione sociale della letteratura, Verga mantiene un pessimismO assoluto.",
+                choices: [
+                    { text: "Ritorna al Nodo 4 e prosegui verso l'Epilogo Verista", target: "n4" }
+                ]
+            }
+        };
+
+        let currentNodeKey = "n1";
+        let historyArray = [];
+
+        function renderNode(key) {
+            const node = graphNodes[key];
+            if (!node) return;
+
+            currentNodeKey = key;
+            if (!historyArray.includes(node.step)) {
+                historyArray.push(node.step);
+            }
+
+            document.getElementById("node-step-tag").innerText = node.step;
+            document.getElementById("node-title").innerText = node.title;
+            document.getElementById("node-body").innerText = node.text;
+            document.getElementById("node-quiz-text").innerText = node.quiz;
+
+            // Render Storico
+            const historyContainer = document.getElementById("node-history");
+            historyContainer.innerHTML = "<small class='text-muted me-2'>Percorso esplorato:</small>" + 
+                historyArray.map(h => `<span class="node-history-badge">${h}</span>`).join(" <i class='fas fa-chevron-right text-muted' style='font-size: 0.7rem;'></i> ");
+
+            // Render Scelte
+            const choicesContainer = document.getElementById("node-choices");
+            choicesContainer.innerHTML = "";
+
+            node.choices.forEach(c => {
+                const btn = document.createElement("button");
+                btn.className = "btn-node";
+                btn.innerHTML = `<i class="fas fa-arrow-right me-2 text-warning"></i>${c.text}`;
+                btn.onclick = () => renderNode(c.target);
+                choicesContainer.appendChild(btn);
+            });
+        }
+
+        function restartNodes() {
+            historyArray = [];
+            renderNode("n1");
+        }
+
+        window.onload = function() {
+            renderNode("n1");
+        };
+    </script>
+</body>
+</html>
